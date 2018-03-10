@@ -31,14 +31,14 @@ GROUP BY time::timestamp::date;
 
 Output of the program after it is run is;
 
-Most popular three articles of all time are;
-Candidate is jerk, alleges rival -- 338647 views
-Bears love berries, alleges bear -- 253801 views
-Bad things gone, say good people -- 170098 views
-Most popular article authors of all time are;
-Ursula La Multa -- 507594 views
-Rudolf von Treppenwitz -- 423457 views
-Anonymous Contributor -- 170098 views
-Markoff Chaney -- 84557 views
-Days which had more than 1% of requests lead to errors?
-2016-07-17 -- 2.26 % errors
+Most popular three articles of all time are; 
+Candidate is jerk, alleges rival -- 338647 views  
+Bears love berries, alleges bear -- 253801 views  
+Bad things gone, say good people -- 170098 views  
+Most popular article authors of all time are;  
+Ursula La Multa -- 507594 views  
+Rudolf von Treppenwitz -- 423457 views  
+Anonymous Contributor -- 170098 views  
+Markoff Chaney -- 84557 views  
+Days which had more than 1% of requests lead to errors?  
+2016-07-17 -- 2.26 % errors 
