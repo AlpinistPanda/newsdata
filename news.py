@@ -1,71 +1,75 @@
+#!/usr/bin/env python3
+
 import psycopg2
 
 db = psycopg2.connect(database="news")
 
 c = db.cursor()
 
+# Dont forget to run views.sql to create the views needed!!
+
 # QUESTION 1: What are the most popular three articles of all time?
 
-query1 = '''SELECT articles.title, COUNT(path)
-            AS views FROM articles
-            JOIN log ON CONCAT('/article/', articles.slug) = path
-            GROUP BY articles.title
-            ORDER BY views DESC LIMIT 3;'''
 
-c.execute(query1)
+def question1():
 
-posts = c.fetchall()
-print("Most popular three articles of all time are;")
-for post in posts:
-    print("{0} -- {1} views".format(post[0], post[1]))
+    query1 = '''SELECT title, views
+                FROM articles
+                JOIN smaller AS log
+                ON log.path = '/article/' || articles.slug
+                ORDER BY views DESC LIMIT 3;'''
 
+    c.execute(query1)
+
+    posts = c.fetchall()
+    print("Most popular three articles of all time are;")
+    for title, views in posts:
+        print("{0} -- {1} views".format(title, views))
+    print('\n')
+    return None
 
 # QUESTION 2: Who are the most popular article authors of all time?
 
 
-query2 = '''SELECT authors.name, COUNT(k.author) as reads
-            FROM (
-            SELECT articles.author, log.path
-            FROM articles
-            JOIN log ON CONCAT('/article/', articles.slug) = path )
-            k
-            JOIN authors ON k.author=authors.id
-            GROUP BY authors.name ORDER BY reads DESC;'''
+def question2():
 
-c.execute(query2)
+    query2 = '''SELECT authors.name, SUM(authorssmaller.views) as reads
+                FROM authorssmaller
+                JOIN authors ON authorssmaller.author=authors.id
+                GROUP BY authors.name ORDER BY reads DESC;'''
 
-posts = c.fetchall()
-print("Most popular article authors of all time are;")
-for post in posts:
-    print("{0} -- {1} views".format(post[0], post[1]))
+    c.execute(query2)
+
+    posts = c.fetchall()
+    print("Most popular article authors of all time are;")
+    for author, views in posts:
+        print("{0} -- {1} views".format(author, views))
+    print('\n')
+    return None
+
 
 """QUESTION 3: On which days did more than 1% of requests lead to errors?"""
 
-# Create a view of log entries for every day
 
-c.execute("CREATE VIEW dailylog \
-            AS SELECT time ::timestamp::date, COUNT(*) AS requests \
-            FROM log \
-            GROUP BY time::timestamp::date;")
+def question3():
+    query3 = '''SELECT (dailyerrors.errors::float * 100 / dailylog.requests::float),
+        dailyerrors.time
+        FROM dailylog JOIN dailyerrors ON dailylog.time=dailyerrors.time
+        WHERE(dailyerrors.errors::float * 100 / dailylog.requests::float) > 1.0;'''
 
-# Create a view of errors happened every day
+    c.execute(query3)
+    posts = c.fetchall()
 
-c.execute("CREATE VIEW dailyerrors \
-            AS SELECT time ::timestamp::date, COUNT(*) AS errors \
-            FROM log \
-            WHERE status = '404 NOT FOUND'\
-            GROUP BY time::timestamp::date;")
+    print("Days which had more than 1% of requests lead to errors?")
+    for post in posts:
+        print(
+            "{0:%B %d, %Y} -- {1:.2f}% errors".format(post[1], float(post[0])))
 
-query3 = '''SELECT (dailyerrors.errors::float * 100 / dailylog.requests::float),
-    dailyerrors.time
-    FROM dailylog JOIN dailyerrors ON dailylog.time=dailyerrors.time
-    WHERE(dailyerrors.errors::float * 100 / dailylog.requests::float) > 1.0;'''
+    return None
 
-c.execute(query3)
-posts = c.fetchall()
 
-print("Days which had more than 1% of requests lead to errors?")
-for post in posts:
-    print("{0} -- {1:.2f}% errors".format(post[1], float(post[0])))
+question1()
+question2()
+question3()
 
 db.close()
